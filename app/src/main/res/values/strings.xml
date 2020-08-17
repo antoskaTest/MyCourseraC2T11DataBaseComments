@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">MyFirstAppCoursera</string>
+    <string name="login_hint">Login</string>
+    <string name="password_hint">Password</string>
+    <string name="login_register">регистрация</string>
+    <string name="login_enter">Вход</string>
+    <string name="login_input_error">Ошибка ввода данных</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="password_enter">Введите пароль</string>
+    <string name="password_enter_again">Повторите ввод пароля</string>
+    <string name="register">Зарегестрироваться</string>
+    <string name="login_register_success">Регистрация прошла успешно</string>
+    <string name="login_register_error">Пользователь уже зарегестрирован</string>
+    <string name="input_error">Ошибка ввода данных</string>
+    <string name="logout">Logout</string>
+    <string name="name">Имя</string>
+    <string name="request_error">request error</string>
+    <string name="auth_error">Ошибка авторизации</string>
+    <string name="albums">Альбомы</string>
+    <string name="error_500">Внутреняя ошибка сервера</string>
+    <string name="error_400">Ошибка валидации</string>
+    <string name="auth">Пользователь авторизован</string>
+</resources>
