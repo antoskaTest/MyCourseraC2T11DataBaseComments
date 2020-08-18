@@ -2,6 +2,7 @@ package com.courseraandroid.myfirstappcoursera.albums;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,8 @@ public class AlbumsFragment extends Fragment implements SwipeRefreshLayout.OnRef
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRefresher;
     private View mErrorView;
+
+    public static String TAG = "TAG";
 
     @NonNull
     private final AlbumsAdapter mAlbumAdapter = new AlbumsAdapter(new AlbumsAdapter.OnItemClickListener() {
@@ -82,7 +85,7 @@ public class AlbumsFragment extends Fragment implements SwipeRefreshLayout.OnRef
         });
     }
 
-    @SuppressLint("CheckResult")
+    //@SuppressLint("CheckResult")
     private void getAlbums() {
 
         ApiUtils.getApi()
@@ -90,7 +93,9 @@ public class AlbumsFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 .doOnSuccess(new Consumer<List<Album>>() {
                     @Override
                     public void accept(List<Album> albums) throws Exception {
+                        Log.d(TAG, "accept:  doOnSuccess");
                         getMusicDao().insertAlbums(albums);
+                        Log.d(TAG, "accept:  doOnSuccess");
                     }
                 })
                 .onErrorReturn(new Function<Throwable, List<Album>>() {
@@ -124,7 +129,8 @@ public class AlbumsFragment extends Fragment implements SwipeRefreshLayout.OnRef
                         mRecyclerView.setVisibility(View.VISIBLE);
                         mAlbumAdapter.addData(albums, true);
                     }
-                }, new Consumer<Throwable>() {
+                }
+                , new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         mErrorView.setVisibility(View.VISIBLE);
@@ -134,6 +140,6 @@ public class AlbumsFragment extends Fragment implements SwipeRefreshLayout.OnRef
     }
 
     private MusicDao getMusicDao() {
-        return ((AppDelegate) (getActivity().getApplication())).getMusicDatabase().getMusicDao();
+        return ((AppDelegate)getActivity().getApplication()).getMusicDatabase().getMusicDao();
     }
 }

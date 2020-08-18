@@ -2,6 +2,7 @@ package com.courseraandroid.myfirstappcoursera.model;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.google.gson.annotations.SerializedName;
@@ -37,6 +38,7 @@ public class Album implements Serializable {
 
 
         @SerializedName("songs")
+        @Ignore
         private List<Song> songs;
 
         public int getId() {

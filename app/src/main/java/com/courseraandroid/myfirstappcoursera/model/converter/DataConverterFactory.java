@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import com.courseraandroid.myfirstappcoursera.model.Data;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
@@ -19,7 +20,14 @@ public class DataConverterFactory extends Converter.Factory{
         Type envelopedType = TypeToken.getParameterized(Data.class, type).getType();
         final Converter<ResponseBody, Data> delegate = retrofit.nextResponseBodyConverter(this, envelopedType, annotations);
 
-        return body ->{
+//        return new Converter<ResponseBody, Object>() {
+//            @Override
+//            public Object convert(ResponseBody body) throws IOException {
+//                Data<?> data = delegate.convert(body);
+//                return data.response;
+//            }
+//        };
+          return      body ->{
           Data<?> data = delegate.convert(body);
           return data.response;
         };
