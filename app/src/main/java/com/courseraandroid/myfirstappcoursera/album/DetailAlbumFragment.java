@@ -2,6 +2,7 @@ package com.courseraandroid.myfirstappcoursera.album;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,18 +15,26 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.courseraandroid.myfirstappcoursera.ApiUtils;
+import com.courseraandroid.myfirstappcoursera.AppDelegate;
 import com.courseraandroid.myfirstappcoursera.R;
+import com.courseraandroid.myfirstappcoursera.db.MusicDao;
 import com.courseraandroid.myfirstappcoursera.model.Album;
+import com.courseraandroid.myfirstappcoursera.model.AlbumSong;
+import com.courseraandroid.myfirstappcoursera.model.Song;
+
+import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class DetailAlbumFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private static final String ALBUM_KEY = "ALBUM_KEY";
+    private static final String TAG = "TAG";
 
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRefresher;
@@ -83,17 +92,42 @@ public class DetailAlbumFragment extends Fragment implements SwipeRefreshLayout.
 
     @SuppressLint("CheckResult")
     private void getAlbum() {
-
+        MusicDao dao = getMusicDao();
         ApiUtils.getApi()
                 .getAlbum(mAlbum.getId())
+                .doOnSuccess(new Consumer<Album>() {
+                    @Override
+                    public void accept(Album album) throws Exception {
+                        dao.insertSongs(album.getSongs());
+                        int i = 1;
+                        for(Song song: album.getSongs()){
+                            dao.insertAlbumSong(new AlbumSong(i, album.getId(), song.getId()));
+                            i++;
+                        }
+                    }
+                })
+                .onErrorReturn(new Function<Throwable, Album>() {
+                    @Override
+                    public Album apply(Throwable throwable) throws Exception {
+                        if (ApiUtils.NETWORK_EXCEPTIONS.contains(throwable.getClass())) {
+                            //загрузка альбомов из бд , если нет интернета
+                            Album album = dao.getAlbum(mAlbum.getId());
+                            List<Song> songs = dao.getSongByAlbumId(mAlbum.getId());
+                            album.setSongs(songs);
+                            return album;
+                        } else {
+                            return null;
+                        }
+                    }
+                })
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(new Consumer<Disposable>() {
                     @Override
                     public void accept(Disposable disposable) throws Exception {
                         mRefresher.setRefreshing(true);
                     }
                 })
-                .observeOn(AndroidSchedulers.mainThread())
                 .doFinally(new Action() {
                     @Override
                     public void run() throws Exception {
@@ -114,5 +148,9 @@ public class DetailAlbumFragment extends Fragment implements SwipeRefreshLayout.
                         mRecyclerView.setVisibility(View.GONE);
                     }
                 });
+    }
+
+    private MusicDao getMusicDao() {
+        return ((AppDelegate)getActivity().getApplication()).getMusicDatabase().getMusicDao();
     }
 }

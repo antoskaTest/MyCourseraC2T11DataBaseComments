@@ -86,6 +86,7 @@ public class AlbumsFragment extends Fragment implements SwipeRefreshLayout.OnRef
     }
 
     //@SuppressLint("CheckResult")
+    @SuppressLint("CheckResult")
     private void getAlbums() {
 
         ApiUtils.getApi()
@@ -93,15 +94,15 @@ public class AlbumsFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 .doOnSuccess(new Consumer<List<Album>>() {
                     @Override
                     public void accept(List<Album> albums) throws Exception {
-                        Log.d(TAG, "accept:  doOnSuccess");
+                        //добавление альбомов в бд
                         getMusicDao().insertAlbums(albums);
-                        Log.d(TAG, "accept:  doOnSuccess");
                     }
                 })
                 .onErrorReturn(new Function<Throwable, List<Album>>() {
                     @Override
                     public List<Album> apply(Throwable throwable) throws Exception {
                         if (ApiUtils.NETWORK_EXCEPTIONS.contains(throwable.getClass())) {
+                            //загрузка альбомов из бд , если нет интернета
                             return getMusicDao().getAlbums();
                         } else {
                             return null;

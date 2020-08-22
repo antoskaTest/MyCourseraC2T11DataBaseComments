@@ -22,7 +22,7 @@ public class SongsHolder extends RecyclerView.ViewHolder {
     }
 
     public void bind(Song item){
-        mTitle.setText(item.getName());
+        mTitle.setText("id = " + item.getId() + ". "+ item.getName());
         mDuration.setText(item.getDuration());
     }
 }
