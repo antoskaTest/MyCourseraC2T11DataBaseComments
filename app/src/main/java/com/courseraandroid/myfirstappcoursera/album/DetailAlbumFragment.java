@@ -4,6 +4,9 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -17,6 +20,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.courseraandroid.myfirstappcoursera.ApiUtils;
 import com.courseraandroid.myfirstappcoursera.AppDelegate;
 import com.courseraandroid.myfirstappcoursera.R;
+import com.courseraandroid.myfirstappcoursera.comments.CommentsFragment;
 import com.courseraandroid.myfirstappcoursera.db.MusicDao;
 import com.courseraandroid.myfirstappcoursera.model.Album;
 import com.courseraandroid.myfirstappcoursera.model.AlbumSong;
@@ -80,6 +84,33 @@ public class DetailAlbumFragment extends Fragment implements SwipeRefreshLayout.
         mRecyclerView.setAdapter(mSongsAdapter);
 
         onRefresh();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        inflater.inflate(R.menu.comment_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.actionComment:
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.fragmentContainer, CommentsFragment.newInstance(mAlbum))
+                        .addToBackStack(CommentsFragment.class.getName())
+                        .commit();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

@@ -21,4 +21,9 @@
     <string name="error_500">Внутреняя ошибка сервера</string>
     <string name="error_400">Ошибка валидации</string>
     <string name="auth">Пользователь авторизован</string>
+    <string name="comments">Комментарии</string>
+    <string name="enter_comment">Введите текст комментария</string>
+    <string name="send_comment">Отправить</string>
+    <string name="error_401">Не авторизован</string>
+    <string name="ok">Комментарий создан успешно</string>
 </resources>
