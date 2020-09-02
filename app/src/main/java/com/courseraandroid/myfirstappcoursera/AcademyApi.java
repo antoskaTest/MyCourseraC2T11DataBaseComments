@@ -1,6 +1,5 @@
 package com.courseraandroid.myfirstappcoursera;
 
-import com.courseraandroid.myfirstappcoursera.comments.CommentId;
 import com.courseraandroid.myfirstappcoursera.model.Album;
 import com.courseraandroid.myfirstappcoursera.model.Comment;
 import com.courseraandroid.myfirstappcoursera.model.Song;
@@ -45,5 +44,5 @@ public interface AcademyApi {
     Single<Comment> getComment(@Path("id") int id);
 
     @POST("comments")
-    Observable<Response<CommentId>> postComment(@Body Comment comment);
+    Observable<Response<Comment>> postComment(@Body Comment comment);
 }

@@ -2,11 +2,13 @@ package com.courseraandroid.myfirstappcoursera.comments;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,8 +43,10 @@ public class CommentsFragment  extends Fragment implements SwipeRefreshLayout.On
     private Album mAlbum;
     private final CommentsAdapter mCommentsAdapter = new CommentsAdapter();
     private Button mButSendComment;
-    private TextView mTextViewComent;
+    private EditText mEditTextComment;
+    private boolean firstLoad = true;
     private static final String TAG = "TAG";
+    private List<Comment> mCommentList;
 
     public static CommentsFragment newInstance(Album album){
         Bundle bundle = new Bundle();
@@ -65,7 +69,7 @@ public class CommentsFragment  extends Fragment implements SwipeRefreshLayout.On
         mRefresher.setOnRefreshListener(this);
         mErrorView = view.findViewById(R.id.errorView);
         mButSendComment = view.findViewById(R.id.but_comment);
-        mTextViewComent = view.findViewById(R.id.et_comment);
+        mEditTextComment = view.findViewById(R.id.et_comment);
         mButSendComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -123,7 +127,19 @@ public class CommentsFragment  extends Fragment implements SwipeRefreshLayout.On
                     public void accept(List<Comment> comments) throws Exception {
                         mErrorView.setVisibility(View.GONE);
                         mRecyclerView.setVisibility(View.VISIBLE);
-                        mCommentsAdapter.addData(comments, true);
+                        if(firstLoad)
+                            mCommentsAdapter.addData(comments, true);
+                        if(!firstLoad) {
+                            if(!CompareComments.isCollectionEquals(mCommentList, comments)) {
+                                Toast.makeText(getActivity(), "Комментарии обновлены", Toast.LENGTH_LONG).show();
+                                mCommentsAdapter.addData(comments, true);
+                            }
+                            else
+                                Toast.makeText(getActivity(), "Новых комментариев нет", Toast.LENGTH_LONG).show();
+                        }
+                        mCommentList = comments;
+                        firstLoad = false;
+                        //mCommentsAdapter.addData(comments, true);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -155,10 +171,10 @@ public class CommentsFragment  extends Fragment implements SwipeRefreshLayout.On
                 .subscribe(new Consumer<Comment>() {
                     @Override
                     public void accept(Comment comment) throws Exception {
-                        mCommentsAdapter.addComment(comment);
+                        mCommentsAdapter.addData(comment);
                         mErrorView.setVisibility(View.GONE);
                         mRecyclerView.setVisibility(View.VISIBLE);
-                        //mCommentsAdapter.addComment(comment);
+                        mRecyclerView.smoothScrollToPosition(mCommentsAdapter.getItemCount());
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -171,55 +187,59 @@ public class CommentsFragment  extends Fragment implements SwipeRefreshLayout.On
 
     @SuppressLint("CheckResult")
     private void postComment() {
-        Comment comment = new Comment(mAlbum.getId(), mTextViewComent.getText().toString());
-        ApiUtils.getApi()
-                .postComment(comment)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        if(!TextUtils.isEmpty(mEditTextComment.getText().toString())) {
+            Comment comment = new Comment(mAlbum.getId(), mEditTextComment.getText().toString());
+            ApiUtils.getApi()
+                    .postComment(comment)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
 
-                .doOnSubscribe(new Consumer<Disposable>() {
-                    @Override
-                    public void accept(Disposable disposable) throws Exception {
-                        mRefresher.setRefreshing(true);
-                    }
-                })
-                .doFinally(new Action() {
-                    @Override
-                    public void run() throws Exception {
-                        mRefresher.setRefreshing(false);
-                        mTextViewComent.setText(null);
-                        mTextViewComent.clearFocus();
-                    }
-                })
-                .subscribe(new Consumer<Response<CommentId>>() {
-                    @Override
-                    public void accept(Response<CommentId> commentResponse) throws Exception {
-                        getComment(commentResponse.body().getId());
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Log.d(TAG, "accept: " + throwable.getMessage());
-                        if (throwable instanceof HttpException) {
-                            Response response = ((HttpException) throwable).response();
-                            Log.d(TAG, "accept: code = " + response.code());
-                            switch (response.code()) {
-                                case 201:
-                                    showMessage(R.string.ok);
-                                    break;
-                                case 500:
-                                    showMessage(R.string.error_500);
-                                    break;
-                                case 400:
-                                    showMessage(R.string.error_400);
-                                    break;
-                                case 401:
-                                    showMessage(R.string.error_401);
-                            }
-                            showMessage(R.string.request_error);
+                    .doOnSubscribe(new Consumer<Disposable>() {
+                        @Override
+                        public void accept(Disposable disposable) throws Exception {
+                            mRefresher.setRefreshing(true);
                         }
-                    }
-                });
+                    })
+                    .doFinally(new Action() {
+                        @Override
+                        public void run() throws Exception {
+                            mRefresher.setRefreshing(false);
+                            mEditTextComment.setText(null);
+                            mEditTextComment.clearFocus();
+                        }
+                    })
+                    .subscribe(new Consumer<Response<Comment>>() {
+                        @Override
+                        public void accept(Response<Comment> commentResponse) throws Exception {
+                            String commentURL = commentResponse.headers().get("Location");
+                            Log.d(TAG, "accept: " + commentURL);
+                            getComment(Integer.parseInt(commentURL.substring(commentURL.lastIndexOf("/") + 1)));
+                            //getComment(commentResponse.body().getId());
+                        }
+                    }, new Consumer<Throwable>() {
+                        @Override
+                        public void accept(Throwable throwable) throws Exception {
+                            Log.d(TAG, "accept: " + throwable.getMessage());
+                            if (throwable instanceof HttpException) {
+                                Response response = ((HttpException) throwable).response();
+                                Log.d(TAG, "accept: code = " + response.code());
+                                switch (response.code()) {
+                                    case 500:
+                                        showMessage(R.string.error_500);
+                                        break;
+                                    case 400:
+                                        showMessage(R.string.error_400);
+                                        break;
+                                    case 401:
+                                        showMessage(R.string.error_401);
+                                }
+                                showMessage(R.string.request_error);
+                            }
+                        }
+                    });
+        }else{
+            showMessage(R.string.error_empty_text);
+        }
     }
 
     private void showMessage(@StringRes int string) {

@@ -26,4 +26,5 @@
     <string name="send_comment">Отправить</string>
     <string name="error_401">Не авторизован</string>
     <string name="ok">Комментарий создан успешно</string>
+    <string name="error_empty_text">Нет текта для отправки</string>
 </resources>
